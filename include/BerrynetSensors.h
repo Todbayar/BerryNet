@@ -1,9 +1,10 @@
-#include <BH1750.h>
-#include <DS18B20.h>
-#include "DHTesp.h"
-#include "gravity_soil_moisture_sensor.h"
+#ifndef BERRYNETSENSORS_H
+#define BERRYNETSENSORS_H
 
 class Sensors {
+    private:
+        uint16_t addressLight, pinEnv, pinSoilMoist, pinSoilTemp;
+        
     public:
         struct ModelSensors {
             struct Environment {
@@ -16,10 +17,10 @@ class Sensors {
             } soil;
             uint16_t light = 0;
         };
-
-        Sensors(uint16_t _addressLight, uint16_t _pinEnv, uint16_t _pinSoilMoist, uint16_t _pinSoilTemp);
         
-        ModelSensors Read();
+        Sensors(uint16_t _addressLight, uint16_t _pinEnv, uint16_t _pinSoilMoist, uint16_t _pinSoilTemp);
 
-        static int addressLight, pinEnv, pinSoilMoist, pinSoilTemp; 
+        ModelSensors ReadSensors();
 };
+
+#endif

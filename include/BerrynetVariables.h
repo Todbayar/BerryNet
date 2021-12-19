@@ -1,3 +1,6 @@
+#ifndef BERRYNETVARIABLES_H
+#define BERRYNETVARIABLES_H
+
 //Orchnii tempperature bolon chiigshil hemjih medregchiin digital hul DHT11
 #define SENSOR_PIN_D_DHT 4
 
@@ -9,3 +12,5 @@
 
 //Hursnii temperature DS18B20 chipnii digital hul 
 #define SENSOR_PIN_D_SOIL_TEMP 26
+
+#endif
