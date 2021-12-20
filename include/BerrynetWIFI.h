@@ -7,6 +7,8 @@ class BerrynetWIFI {
     public:
         BerrynetWIFI(String _ssid, String _pass);
         IPAddress Connect();
+        IPAddress Reconnect();
+        IPAddress ipLocalWifi;
 };
 
 #endif

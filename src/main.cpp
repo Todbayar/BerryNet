@@ -1,6 +1,5 @@
 #include <Arduino.h>
 #include <U8g2lib.h>    //oled 0.96" 128x64 noname i2c
-#include <WiFi.h>
 
 // #include "freertos/FreeRTOS.h"
 // #include "freertos/task.h"
@@ -14,9 +13,7 @@
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C oled(U8G2_R0, U8X8_PIN_NONE);
 
 BerrynetSensors cSensors(SENSOR_ADDRESS_BH1750, SENSOR_PIN_D_DHT, SENSOR_PIN_A_SOIL_MOIST, SENSOR_PIN_D_SOIL_TEMP);
-//BerrynetWIFI cWifi(WIFI_SSID, WIFI_PASS);
-
-//IPAddress wifiIPAddress;
+BerrynetWIFI cWifi(WIFI_SSID, WIFI_PASS);
 
 void setup() {
     Serial.begin(115200);
@@ -27,27 +24,18 @@ void setup() {
     oled.setFont(u8g2_font_unifont_t_cyrillic);
     oled.setFontDirection(0);
 
-    //wifiIPAddress = cWifi.Connect();
-
-    btStop();
-    WiFi.mode(WIFI_STA);
-    Serial.println(WIFI_SSID);
-    Serial.println(WIFI_PASS);
-    WiFi.begin(WIFI_SSID, WIFI_PASS);
-
-    while (WiFi.status() != WL_CONNECTED){
-        delay(500);
-        Serial.print('.');
-    };
+    cWifi.Connect();
 }
 
 void loop() {
+    cWifi.Reconnect();
+
     BerrynetSensors::ModelSensors varSensors = cSensors.Read();
 
     oled.clearBuffer();
     
     oled.setCursor(0, 15);
-    oled.print(WiFi.localIP());
+    oled.print(cWifi.ipLocalWifi);
     
     oled.setCursor(0, 30);
     oled.print("Light:");
@@ -69,4 +57,6 @@ void loop() {
     oled.print("c");
 
     oled.sendBuffer();
+
+    
 }
