@@ -6,14 +6,14 @@
 #include "gravity_soil_moisture_sensor.h"
 #include "BerrynetSensors.h"
 
-Sensors::Sensors(uint16_t _addressLight, uint16_t _pinEnv, uint16_t _pinSoilMoist, uint16_t _pinSoilTemp){
+BerrynetSensors::BerrynetSensors(uint16_t _addressLight, uint16_t _pinEnv, uint16_t _pinSoilMoist, uint16_t _pinSoilTemp){
     addressLight = _addressLight;
     pinEnv = _pinEnv;
     pinSoilMoist = _pinSoilMoist;
     pinSoilTemp = _pinSoilTemp;
 }
 
-Sensors::ModelSensors Sensors::ReadSensors(){
+BerrynetSensors::ModelSensors BerrynetSensors::Read(){
     Wire.begin();   //I2C
     
     //BH1750 light intensity sensor

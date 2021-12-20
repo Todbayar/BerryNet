@@ -1,7 +1,7 @@
 #ifndef BERRYNETSENSORS_H
 #define BERRYNETSENSORS_H
 
-class Sensors {
+class BerrynetSensors {
     private:
         uint16_t addressLight, pinEnv, pinSoilMoist, pinSoilTemp;
         
@@ -18,9 +18,9 @@ class Sensors {
             uint16_t light = 0;
         };
         
-        Sensors(uint16_t _addressLight, uint16_t _pinEnv, uint16_t _pinSoilMoist, uint16_t _pinSoilTemp);
+        BerrynetSensors(uint16_t _addressLight, uint16_t _pinEnv, uint16_t _pinSoilMoist, uint16_t _pinSoilTemp);
 
-        ModelSensors ReadSensors();
+        ModelSensors Read();
 };
 
 #endif
