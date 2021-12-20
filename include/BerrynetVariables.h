@@ -11,4 +11,11 @@
 #define WIFI_SSID "Univision_3843"
 #define WIFI_PASS "db0fb09b8950"
 
+#define MQTT_SERVER "https://api.thingspeak.com/update"
+#define MQTT_ID_WRITE "1JUWJT91TAF6KJC9"
+#define MQTT_ID_READ "OFAP1S6YUB6ZA04D"
+#define MQTT_USERNAME "LQIbJhgwDR8oCDgSPQo4MT0"
+#define MQTT_CLIENT_ID "LQIbJhgwDR8oCDgSPQo4MT0"
+#define MQTT_PASSWORD "p5DLueSx4/FtzeL6MYlD9X/o"
+
 #endif

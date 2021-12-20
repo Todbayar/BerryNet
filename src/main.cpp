@@ -9,11 +9,37 @@
 #include "BerrynetSensors.h"
 #include "BerrynetWIFI.h"
 
+#include <PubSubClient.h>
+#include <WiFi.h>
 
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C oled(U8G2_R0, U8X8_PIN_NONE);
 
 BerrynetSensors cSensors(SENSOR_ADDRESS_BH1750, SENSOR_PIN_D_DHT, SENSOR_PIN_A_SOIL_MOIST, SENSOR_PIN_D_SOIL_TEMP);
 BerrynetWIFI cWifi(WIFI_SSID, WIFI_PASS);
+
+WiFiClient wifiClient;
+PubSubClient mqttClient(wifiClient);
+long last_time;
+uint16_t dataToPublish[5];
+uint16_t fieldToPublish[5] = {1,1,0,0,0};
+
+void mqttCallback(char *topic, byte *payload, uint16_t length){
+    Serial.print("Callback - Message:");
+    for(int i=0; i<length; i++){
+        Serial.print((char)payload[i]);
+    }
+    Serial.println();
+}
+
+void mqttReconnect(){
+    Serial.println("Connecting to MQTT broker...");
+    while(!mqttClient.connected()){
+        Serial.println("Connecting to MQTT broker...");
+        if(mqttClient.connect(MQTT_CLIENT_ID)){
+            Serial.println("Connected.");
+        }
+    }
+}
 
 void setup() {
     Serial.begin(115200);
@@ -25,10 +51,25 @@ void setup() {
     oled.setFontDirection(0);
 
     cWifi.Connect();
+    mqttClient.setServer(MQTT_SERVER, 8883);
+    mqttClient.setCallback(mqttCallback);
 }
 
 void loop() {
     cWifi.Reconnect();
+
+    if(!mqttClient.connected()){
+        if(mqttClient.connect(MQTT_CLIENT_ID, MQTT_USERNAME, MQTT_PASSWORD)){
+            if(mqttClient.subscribe(MQTT_ID_READ)){
+                Serial.println("Mqtt Subscribed");
+            }
+        }
+        else {
+            Serial.println(mqttClient.state());
+            delay(5000);
+        }
+    }
+    mqttClient.loop();
 
     BerrynetSensors::ModelSensors varSensors = cSensors.Read();
 
@@ -57,6 +98,12 @@ void loop() {
     oled.print("c");
 
     oled.sendBuffer();
-
     
+    long now = millis(); 
+    if(now - last_time > 60000){
+        dataToPublish[0] = varSensors.light;
+        //mqttClient.publish(MQTT_ID_WRITE, dataToPublish, fieldToPublish);
+        last_time = now;
+    }
+    delay(1);
 }
