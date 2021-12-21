@@ -10,6 +10,8 @@
 
 #define WIFI_SSID "Univision_3843"
 #define WIFI_PASS "db0fb09b8950"
+// #define WIFI_SSID "AndroiAPBADD"
+// #define WIFI_PASS "ahnd4523"
 
 #define MQTT_SERVER "https://api.thingspeak.com/update"
 #define MQTT_ID_WRITE "1JUWJT91TAF6KJC9"

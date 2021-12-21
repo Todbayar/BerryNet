@@ -1,14 +1,18 @@
 #ifndef BERRYNETWIFI_H
 #define BERRYNETWIFI_H
 
-class BerrynetWIFI {
+#include <Arduino.h>
+#include <WiFi.h>
+
+class BerrynetWIFI :  {
     private:
-        String ssid, pass;
+        char* ssid, pass;
     public:
-        BerrynetWIFI(String _ssid, String _pass);
+        BerrynetWIFI(char* _ssid, char* _pass);
         IPAddress Connect();
         IPAddress Reconnect();
-        IPAddress ipLocalWifi;
+
+        static IPAddress IP_LOCAL_WIFI;
 };
 
 #endif
