@@ -1,5 +1,4 @@
-WiFiClient wifiClient;
-PubSubClient mqttClient(wifiClient);
+
 long last_time;
 uint16_t dataToPublish[5];
 uint16_t fieldToPublish[5] = {1,1,0,0,0};
@@ -22,21 +21,9 @@ void mqttReconnect(){
     }
 }
 
-mqttClient.setServer(MQTT_SERVER, 8883);
-    mqttClient.setCallback(mqttCallback);
 
-    if(!mqttClient.connected()){
-        if(mqttClient.connect(MQTT_CLIENT_ID, MQTT_USERNAME, MQTT_PASSWORD)){
-            if(mqttClient.subscribe(MQTT_ID_READ)){
-                Serial.println("Mqtt Subscribed");
-            }
-        }
-        else {
-            Serial.println(mqttClient.state());
-            delay(5000);
-        }
-    }
-    mqttClient.loop();
+
+    
 
     long now = millis(); 
     if(now - last_time > 60000){
