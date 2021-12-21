@@ -4,4 +4,4 @@
 .vscode/launch.json
 .vscode/ipch
 
-BerrynetVariables.h
+include/BerrynetVariables.h
