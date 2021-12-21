@@ -18,6 +18,7 @@ uint8_t u8log_buffer[U8LOG_WIDTH*U8LOG_HEIGHT];
 U8G2LOG u8g2log;
 
 String VAR_GLOBAL_STR_STATUS;
+BerrynetSensors::ModelSensors varSensors;
 
 void mqttCallback(char *topic, byte *payload, uint16_t length){
     Serial.print("MQTT:");
@@ -37,7 +38,7 @@ void mqttCallback(char *topic, byte *payload, uint16_t length){
 
 void displayTask(void *param){
     for(;;){
-        BerrynetSensors::ModelSensors varSensors = cSensors.Read();
+        varSensors = cSensors.Read();
 
         oled.clearBuffer();
         
@@ -111,7 +112,12 @@ void WiFiEventSuccess(WiFiEvent_t event, WiFiEventInfo_t info){
 
     mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
     mqttClient.setCallback(mqttCallback);
-    mqttClient.connect(MQTT_CLIENT_ID, MQTT_USERNAME, MQTT_PASSWORD);
+    if(mqttClient.connect(MQTT_CLIENT_ID, MQTT_USERNAME, MQTT_PASSWORD)){
+        VAR_GLOBAL_STR_STATUS = "MQTT OK";
+    }
+    else {
+        VAR_GLOBAL_STR_STATUS = "MQTT AUTH?";
+    }
 }
 
 void setup() {
@@ -131,33 +137,37 @@ void setup() {
     WiFi.begin(WIFI_SSID, WIFI_PASS);
 }
 
+uint16_t mqtt_counter = WIFI_TIMEOUT/2;
 void loop() {
     if(WiFi.status() == WL_CONNECTED){
-        Serial.print("MQTT:");
-        Serial.println(mqttClient.state());
+        switch(mqttClient.state()){
+            case MQTT_CONNECTION_TIMEOUT:
+                VAR_GLOBAL_STR_STATUS = "MQTT TIMEOUT";
+                break;
+            case MQTT_CONNECTED:
+                VAR_GLOBAL_STR_STATUS = "MQTT OK";
+                break;
+        }
+        delay(1000);
         if(mqttClient.connected()){
-            VAR_GLOBAL_STR_STATUS = "MQTT OK";
+            VAR_GLOBAL_STR_STATUS = "MQTT:" + mqtt_counter;
+            if(mqtt_counter > 0){
+                char mqttData[50];
+                snprintf(mqttData, 50, "Numeric #%1d", varSensors.light);
+                mqttClient.publish("channels/1613491/publish/fields/field1", mqttData);
+                mqtt_counter = WIFI_TIMEOUT/2;
+            }
+            mqtt_counter--;
         }
         else {
             VAR_GLOBAL_STR_STATUS = "MQTT FAIL";
         }
         mqttClient.loop();
-
         delay(1000);
         VAR_GLOBAL_STR_STATUS = WiFi.localIP().toString();
         delay(1000);
     }
-    // if(!mqttClient.connected()){
-    //     if(mqttClient.connect(MQTT_CLIENT_ID, MQTT_USERNAME, MQTT_PASSWORD)){
-
-    //         if(mqttClient.subscribe(MQTT_ID_READ)){
+    //if(mqttClient.subscribe(MQTT_ID_READ)){
     //             Serial.println("Mqtt Subscribed");
     //         }
-    //     }
-    //     else {
-    //         Serial.println(mqttClient.state());
-    //         delay(5000);
-    //     }
-    // }
-    // mqttClient.loop();
 }

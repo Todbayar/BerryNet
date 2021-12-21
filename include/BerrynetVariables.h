@@ -14,12 +14,13 @@
 // #define WIFI_SSID "AndroiAPBADD"
 // #define WIFI_PASS "ahnd4523"
 
-#define MQTT_SERVER "api.thingspeak.com"
+#define MQTT_SERVER "mqtt3.thingspeak.com"
+//#define MQTT_PORT 8883
 #define MQTT_PORT 1883
 #define MQTT_ID_WRITE "1JUWJT91TAF6KJC9"
 #define MQTT_ID_READ "OFAP1S6YUB6ZA04D"
 #define MQTT_CHANNELID "1613491"
-#define MQTT_USERNAME "mwa0000025092712"
+#define MQTT_USERNAME "LQIbJhgwDR8oCDgSPQo4MT0"
 #define MQTT_CLIENT_ID "LQIbJhgwDR8oCDgSPQo4MT0"
 #define MQTT_PASSWORD "p5DLueSx4/FtzeL6MYlD9X/o"
 
