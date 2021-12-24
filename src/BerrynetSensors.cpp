@@ -5,6 +5,7 @@
 #include "DHTesp.h"
 #include "gravity_soil_moisture_sensor.h"
 #include "BerrynetSensors.h"
+#include "BerrynetModels.h"
 
 BerrynetSensors::BerrynetSensors(uint16_t _addressLight, uint16_t _pinEnv, uint16_t _pinSoilMoist, uint16_t _pinSoilTemp){
     addressLight = _addressLight;
@@ -13,7 +14,7 @@ BerrynetSensors::BerrynetSensors(uint16_t _addressLight, uint16_t _pinEnv, uint1
     pinSoilTemp = _pinSoilTemp;
 }
 
-BerrynetSensors::ModelSensors BerrynetSensors::Read(){
+ModelSensors BerrynetSensors::Read(){
     Wire.begin();   //I2C
     
     //BH1750 light intensity sensor
@@ -38,7 +39,7 @@ BerrynetSensors::ModelSensors BerrynetSensors::Read(){
     modSensors.light = meterLight.readLightLevel();
     modSensors.environment.humidity = meterEnvironment.getHumidity();
     modSensors.environment.temperature = meterEnvironment.getTemperature();
-    modSensors.soil.moisture = meterSoilMoist.Read();
+    modSensors.soil.moisture = meterSoilMoist.Read() * 100 / 3500;
     modSensors.soil.temperature = meterSoilTemp.getTempC();
 
     return modSensors;
