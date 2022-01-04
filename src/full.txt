@@ -28,7 +28,7 @@
 #define timeToSleep 600 //10min
 #define HTTP_TIMEUP 10000
 #define HTTP_API_KEY "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJUaGluZ2VyRGV2aWNlQXV0aCIsInN2ciI6ImFwLXNvdXRoZWFzdC5hd3MudGhpbmdlci5pbyIsInVzciI6IlRvZGQifQ.UzPa-R28Ye-_fW7U1Q43ryHEw-NWP09WoK-qg9BaiC8"
-#define HTTP_URL_POST "http://backend.thinger.io/v3/users/Todd/devices/ESP32/callback/data"
+#define HTTP_URL_POST "https://backend.thinger.io/v3/users/Todd/devices/ESP32/callback/data"
 
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C oled(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);   //full buffer
 //U8G2_SSD1306_128X64_NONAME_1_HW_I2C oled(U8G2_R0, /* reset=*/ U8X8_PIN_NONE); //page buffer
@@ -49,8 +49,7 @@ hw_timer_t * timerWater = NULL;
 portMUX_TYPE timerWaterMux = portMUX_INITIALIZER_UNLOCKED;
 IPAddress vWiFiLocalIP;
 unsigned long vTimeHttpPost;
-unsigned long vTimeHttpCountDown;
-const unsigned long vTimeHttpWait = 3600000L; //1hour
+const unsigned long vTimeHttpWait =120000L; //2min
 
 void postHTTP(){
   StaticJsonDocument<96> jsonData;    //Calculated by "ArduinoJSON" (web site)
@@ -61,7 +60,6 @@ void postHTTP(){
   jsonData["soil_temp"] = vSoilTemp;
   String jsonStr;
   serializeJson(jsonData, jsonStr);
-  //Serial.println(jsonStr);
   WiFiClient wifiClient;
   HTTPClient httpClient;
   httpClient.begin(wifiClient, HTTP_URL_POST);
@@ -78,7 +76,7 @@ void postHTTP(){
   else {
       vStat = httpResponseCode;
   }
-  //Serial.println(httpResponseCode);
+  Serial.println(httpResponseCode);
   httpClient.end();
 }
 
@@ -131,7 +129,6 @@ void IRAM_ATTR waterOnTime(){
 
 void setup() {
   vTimeHttpPost = millis();
-  vTimeHttpCountDown = vTimeHttpWait;
   vStat = timeClient.getFormattedTime();
   delay(1000);
   print_wakeup_reason();
@@ -166,37 +163,21 @@ void setup() {
 
   //digitalWrite(pinWaterMotor, HIGH);  //pump
 
-  // Serial.begin(115200);
-  // while(!Serial);
+  Serial.begin(115200);
+  while(!Serial);
 }
 
 void loop() {
   if(WiFi.status() == WL_CONNECTED) {
     if(!timeClient.update()) timeClient.forceUpdate();
-    
-    if(millis() >= vTimeHttpPost + vTimeHttpWait){
-      //Serial.println("HTTP SEND");
-      delay(1000);
-      postHTTP();
-      vTimeHttpPost = millis();
-      vTimeHttpCountDown = vTimeHttpWait;
-    }
-    else {
-      unsigned long vTimerCount = vTimeHttpCountDown / 1000;
-      uint16_t vTimerHour = vTimerCount / 3600;                                     //hours
-      uint16_t vTimerMinute = (vTimerCount - vTimerHour * 3600) / 60;               //minutes
-      uint16_t vTimerSecond = vTimerCount - vTimerHour * 3600 - vTimerMinute * 60;  //seconds           
-      vStat = String(vTimerHour) + ":" + String(vTimerMinute) + ":" + String(vTimerSecond);
-      vTimeHttpCountDown -= 1000;
-    }
   }
 
-  // Serial.print("Day:");
-  // Serial.print(timeClient.getDay());
-  // Serial.print(" House:");
-  // Serial.print(timeClient.getHours());
-  // Serial.print(" Time:");
-  // Serial.println(timeClient.getFormattedTime());
+  Serial.print("Day:");
+  Serial.print(timeClient.getDay());
+  Serial.print(" House:");
+  Serial.print(timeClient.getHours());
+  Serial.print(" Time:");
+  Serial.println(timeClient.getFormattedTime());
 
   meterSoilTemp.requestTemperatures();
   
@@ -208,8 +189,8 @@ void loop() {
 
   //if(vLight < 1690 && (timeClient.getHours() >= 19 && timeClient.getHours() <= 7)){
   //else if(vLight > 1690 && vLight <= 6590) {
-  //Turn light on to morning 9 from night 17
-  if(timeClient.getHours() <= 9 || timeClient.getHours() >= 17){
+  //Turn light on to morning 7 from night 19
+  if(timeClient.getHours() <= 7 || timeClient.getHours() >= 19){
     digitalWrite(pinRelayLight, LOW); //on
   }
   else {
@@ -272,6 +253,17 @@ void loop() {
   digitalWrite(2, LOW);
   delay(500);
 
+  if(WiFi.status() == WL_CONNECTED){
+    if(millis() >= vTimeHttpPost + vTimeHttpWait){
+      vStat = "HTTP SEND";
+      delay(1000);
+      postHTTP();
+      vTimeHttpPost = millis();
+    }
+    else {
+      vStat = "HTTP WAIT"; 
+    }
+  }
   // delay(1000);
   // Serial.flush();
   // vStat = "Sleep";

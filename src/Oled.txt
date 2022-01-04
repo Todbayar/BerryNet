@@ -1,0 +1,59 @@
+#include <Arduino.h>
+#include <U8g2lib.h>
+#include <BH1750.h>
+#include <DS18B20.h>
+#include <OneWire.h>
+#include "DHTesp.h"
+#include "gravity_soil_moisture_sensor.h"
+
+#define pinSensorEnv 12
+#define pinSensorSoilMoist 13
+#define pinSensorSoilTemp 15
+
+#define addressBH1750 0x23 
+
+U8G2_SSD1306_128X64_NONAME_F_HW_I2C oled(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);   //full buffer
+//U8G2_SSD1306_128X64_NONAME_1_HW_I2C oled(U8G2_R0, /* reset=*/ U8X8_PIN_NONE); //page buffer
+BH1750 meterLight(addressBH1750);
+OneWire oneWire(pinSensorSoilTemp);
+DS18B20 meterSoilTemp(&oneWire);
+DHTesp meterEnv;
+GravitySoilMoistureSensor meterSoilMoist;
+
+void setup() {
+  // Serial.begin(115200);
+  // while(!Serial);
+  oled.begin();
+  oled.enableUTF8Print();
+  meterLight.begin(BH1750::CONTINUOUS_HIGH_RES_MODE);
+  meterEnv.setup(pinSensorEnv, DHTesp::DHT11);
+  meterSoilMoist.Setup(pinSensorSoilMoist);
+  meterSoilTemp.begin();
+  pinMode(2, OUTPUT);
+}
+
+void loop() {
+  oled.clearBuffer();
+  oled.setFont(u8g2_font_unifont_t_cyrillic);
+  oled.setFontDirection(0);
+  oled.setCursor(0, 15);
+  oled.print("Сайн байна уу");
+  oled.setCursor(0, 40);
+  oled.print("Дэлхий минь");
+  oled.sendBuffer();
+
+  // Serial.print("Env temp:");
+  // Serial.println(meterEnv.getTemperature());
+  // oled.setFont(u8g2_font_unifont_t_cyrillic);
+  // oled.setFontDirection(0);
+  // oled.firstPage();
+  // do {
+  //   oled.drawStr(0,15,"Сайн байна уу");
+  //   oled.drawStr("Дэлхий минь");
+  // } while (oled.nextPage());
+
+  digitalWrite(2, HIGH);
+  delay(500);
+  digitalWrite(2, LOW);
+  delay(1000);
+}
