@@ -20,14 +20,12 @@
 #define pinWaterMeter 14
 
 #define addressBH1750 0x23
-// #define wifiSSID "Univision_3843"
-// #define wifiPASS "db0fb09b8950"
 #define wifiSSID "AndroidAPBADD"
 #define wifiPASS "ahnd4523"
 #define microsecToSec 1000000
 #define timeToSleep 600 //10min
 #define HTTP_TIMEUP 10000
-#define HTTP_API_KEY "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJUaGluZ2VyRGV2aWNlQXV0aCIsInN2ciI6ImFwLXNvdXRoZWFzdC5hd3MudGhpbmdlci5pbyIsInVzciI6IlRvZGQifQ.UzPa-R28Ye-_fW7U1Q43ryHEw-NWP09WoK-qg9BaiC8"
+#define HTTP_API_KEY "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpX*******"
 #define HTTP_URL_POST "http://backend.thinger.io/v3/users/Todd/devices/ESP32/callback/data"
 
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C oled(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);   //full buffer
