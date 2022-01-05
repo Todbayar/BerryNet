@@ -37,13 +37,15 @@ GravitySoilMoistureSensor meterSoilMoist;
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "mn.pool.ntp.org", 3600, 60000);
 
-uint16_t vLight, vEnvHumi, vEnvTemp, vSoilMoist, vSoilTemp;
+uint16_t vLight, vEnvHumi, vEnvTemp, vSoilMoist;
+float vSoilTemp;  //need more precision for determining inclining or declining
 String vStat;
 volatile double vWaterMeasure = 0.0;
 IPAddress vWiFiLocalIP;
 unsigned long vTimeHttpPost;
 unsigned long vTimeHttpCountDown;
 const unsigned long vTimeHttpWait = 3600000L; //1hour
+//const unsigned long vTimeHttpWait = 60000L; //1min
 
 void postHTTP(){
   StaticJsonDocument<96> jsonData;    //Calculated by "ArduinoJSON" (web site)
@@ -98,6 +100,18 @@ void IRAM_ATTR waterCounter(){
   }
 }
 
+void sensorTask(void *param){
+  for(;;){
+    meterSoilTemp.requestTemperatures();
+    vLight = meterLight.readLightLevel();
+    vEnvHumi = meterEnv.getHumidity();
+    vEnvTemp = meterEnv.getTemperature();
+    vSoilMoist = meterSoilMoist.Read()*100/3500;
+    vSoilTemp = meterSoilTemp.getTempC();
+  }
+  vTaskDelete(NULL);
+}
+
 void setup() {
   vTimeHttpPost = millis();
   vTimeHttpCountDown = vTimeHttpWait;
@@ -125,6 +139,8 @@ void setup() {
   vWaterMeasure = 0.0;
   attachInterrupt(digitalPinToInterrupt(pinWaterMeter), waterCounter, RISING);
 
+  xTaskCreate(sensorTask, "sensorTask", 10000, NULL, 1, NULL);
+
   btStop();
   WiFi.onEvent(WiFiEventSuccess, SYSTEM_EVENT_STA_GOT_IP);
   WiFi.onEvent(WiFiEventFail, SYSTEM_EVENT_STA_DISCONNECTED);
@@ -133,41 +149,6 @@ void setup() {
 }
 
 void loop() {
-  if(WiFi.status() == WL_CONNECTED) {
-    if(!timeClient.update()) timeClient.forceUpdate();
-    
-    if(millis() >= vTimeHttpPost + vTimeHttpWait){
-      postHTTP();
-      vTimeHttpPost = millis();
-      vTimeHttpCountDown = vTimeHttpWait;
-      delay(1000);
-
-      //SOIL MOISTURE
-      if(vSoilMoist < 38){
-        digitalWrite(pinRelayWaterMotor, LOW);
-      }
-      else if(vSoilMoist >= 38 || vSoilMoist < 40){
-        digitalWrite(pinRelayWaterMotor, HIGH);
-      }
-    }
-    else {
-      unsigned long vTimerCount = vTimeHttpCountDown / 1000;
-      uint16_t vTimerHour = vTimerCount / 3600;                                     //hours
-      uint16_t vTimerMinute = (vTimerCount - vTimerHour * 3600) / 60;               //minutes
-      uint16_t vTimerSecond = vTimerCount - vTimerHour * 3600 - vTimerMinute * 60;  //seconds           
-      vStat = String(vTimerHour) + ":" + String(vTimerMinute) + ":" + String(vTimerSecond);
-      vTimeHttpCountDown -= 1000;
-    }
-  }
-
-  meterSoilTemp.requestTemperatures();
-  
-  vLight = meterLight.readLightLevel();
-  vEnvHumi = meterEnv.getHumidity();
-  vEnvTemp = meterEnv.getTemperature();
-  vSoilMoist = meterSoilMoist.Read()*100/3500;
-  vSoilTemp = meterSoilTemp.getTempC();
-
   //LIGHT - Turn on to morning 9 from night 17
   if(timeClient.getHours() <= 9 || timeClient.getHours() >= 17){
     digitalWrite(pinRelayLight, LOW); //on
@@ -213,6 +194,32 @@ void loop() {
   oled.print(F("C"));
 
   oled.sendBuffer();
+
+  if(millis() >= vTimeHttpPost + vTimeHttpWait){
+    if(WiFi.status() == WL_CONNECTED) {
+      if(!timeClient.update()) timeClient.forceUpdate();
+      postHTTP();
+      delay(1000);
+    }
+    vTimeHttpPost = millis();
+    vTimeHttpCountDown = vTimeHttpWait;
+
+    //SOIL MOISTURE
+    if(vSoilMoist < 40){
+      digitalWrite(pinRelayWaterMotor, LOW);
+    }
+    else if(vSoilMoist >= 41 || vSoilMoist < 50){
+      digitalWrite(pinRelayWaterMotor, HIGH);
+    }
+  }
+  else {
+    unsigned long vTimerCount = vTimeHttpCountDown / 1000;
+    uint16_t vTimerHour = vTimerCount / 3600;                                     //hours
+    uint16_t vTimerMinute = (vTimerCount - vTimerHour * 3600) / 60;               //minutes
+    uint16_t vTimerSecond = vTimerCount - vTimerHour * 3600 - vTimerMinute * 60;  //seconds           
+    vStat = String(vTimerHour) + ":" + String(vTimerMinute) + ":" + String(vTimerSecond);
+    vTimeHttpCountDown -= 1000;
+  }
 
   digitalWrite(BUILTIN_LED, HIGH);
   delay(500);
